@@ -1,0 +1,223 @@
+CONNECTOME-HIPPOCAMPUS ARCHITECTURE  (v1)
+
+This is the third of six documents. The Architecture phase of the Specification,
+Pseudocode, Architecture, Refinement, Completion (SPARC) methodology designs the
+skeleton of the system: its major components, the boundaries between them, the
+substrate they run on, and how they are wired. This file describes the structure of
+connectome-hippocampus exactly as it is built.
+
+Acronyms and proper names used here, spelled out on first use in this file:
+English-Readable Code (ERC), JavaScript Object Notation (JSON), long-term
+potentiation (LTP), and the Abstraction and Reasoning Corpus for Artificial General
+Intelligence (ARC-AGI). Ed25519 and SWI-Prolog are proper names, kept verbatim.
+
+
+PART ONE - THE ORGANIZING PRINCIPLE: STRATUM-PRIMARY
+
+The region is decomposed one pack per biological stratum on the OUTSIDE, with the
+individual constructs living as independently testable sub-modules on the INSIDE.
+This is the Wave 3 verdict of the Connectome program, and it is the same shape the
+Wave 4 arbiter used. A "stratum" here is a level of biological organization named by
+Causalontology 2.0.0 and given a numeric ordinal; a lower ordinal is a finer level.
+
+Two supporting packs sit beneath the strata as substrate: a coordination Lattice and
+a shared minting vocabulary. They belong to no stratum and are reused verbatim from
+earlier Connectome work.
+
+
+PART TWO - THE FIVE PACKS, THEIR LAYERS AND STRATA
+
+Each pack declares a numeric layer (used by the strict layer rule) and, if it sits at
+a stratum, a named stratum (used by the layer-to-stratum binding). The layer numbers
+are internal to this repository; the stratum ordinals are read from the structure
+records.
+
+Pack: neural_lattice
+    Layer 0. No stratum (substrate, unbound).
+    Role: the coordination Lattice - stigmergy for state plus notification for
+    reactivity. Regions coordinate only by posting and awaiting numbered phase cues;
+    they never address one another. Reused verbatim from the Wave 2 slice.
+    Public predicates include neural_lattice_open, neural_lattice_reset,
+    neural_lattice_post_cue, neural_lattice_await_cue, neural_lattice_hop,
+    neural_lattice_narrate, and the retained hop trace.
+
+Pack: causal_grounding
+    Layer 0. No stratum (substrate, unbound).
+    Role: the shared Causalontology 2.0.0 minting vocabulary - fourteen helpers that
+    stamp a content-addressed identity, fold key-value fields, build id-keyed maps,
+    derive a deterministic signing key, and sign an assertion. Reused verbatim so a
+    record minted here has byte-identical content, and therefore a byte-identical
+    identity, to the same record elsewhere. Public predicates include cm_stratum,
+    cm_cnt, cm_occ, cm_rlz, cm_port, cm_conduit, cm_cro, cm_map_of, and
+    cm_signed_assertion_over.
+
+Pack: macromolecular_stratum
+    Layer 1. Stratum: macromolecular (ordinal 4).
+    Role: CONSOLIDATE - the calcium-driven molecular cascade that raises a labile
+    trace toward durable. The dynamics are kept native as a rate law, never dressed
+    as a causal_relation_object. The pack is PURE: no runtime tick, no Lattice
+    coordination; it is invoked downward during encoding. It mints six structure
+    records. Public predicates: macromolecular_stratum_consolidate,
+    macromolecular_stratum_is_durable, macromolecular_stratum_durable_occurrent,
+    macromolecular_stratum_stratum, macromolecular_stratum_records.
+
+Pack: synaptic_stratum
+    Layer 2. Stratum: synaptic (ordinal 7).
+    Role: ENCODE - long-term potentiation writes an input pattern as a labile memory
+    trace and sets its initial strength. The pattern is written unchanged, so the set
+    of stored patterns is exactly the set of encoded inputs. The dynamics are native.
+    The pack is PURE: no runtime tick. It mints four structure records. Public
+    predicates: synaptic_stratum_encode, synaptic_stratum_potentiate,
+    synaptic_stratum_potentiation_occurrent, synaptic_stratum_stratum,
+    synaptic_stratum_records.
+
+Pack: region_stratum
+    Layer 3. Stratum: region (ordinal 9).
+    Role: the hippocampal circuit - SEPARATE (dentate gyrus), COMPLETE (CA3, the
+    reentrant loop), and RECALL (the membership-contracted selection). This is the
+    only pack with a runtime actor (the completion tick). It mints twelve structure
+    records and declares the membership contract on recall. Public predicates include
+    region_stratum_separate, region_stratum_best_match, region_stratum_complete_step,
+    region_stratum_complete_tick, region_stratum_run_completion, region_stratum_recall,
+    region_stratum_store_encode, region_stratum_store_patterns,
+    region_stratum_encode_memory, and the structure accessors.
+
+The cellular stratum (ordinal 6) is deliberately not occupied: no construct in this
+cut of the model lives there. That absence is honest and is why the cross-stratal
+consolidation relation (macromolecular ordinal 4 to region ordinal 9) is flagged as
+a clean skip.
+
+
+PART THREE - THE PACK GRAPH (a text diagram)
+
+Arrows point in the direction of a dependency (a pack imports the pack it points to).
+Every edge goes downward or sideways; there is no upward edge.
+
+    region_stratum            (layer 3, stratum region, ordinal 9)
+       |   \        \
+       |    \        \-------------------------\
+       v     v                                  v
+    synaptic_stratum      macromolecular_stratum      (layers 2 and 1)
+       |     (ordinal 7)      |   (ordinal 4)
+       |                      |
+       v                      v
+    causal_grounding   <---   (both strata import the minting vocabulary)
+                              (layer 0, substrate)
+
+    region_stratum  --->  neural_lattice   (layer 0, substrate: the memory store,
+                                            the reentrant loop, the narration)
+
+    region_stratum  --->  [PrologAI, read-only]:
+                              library(membership_contract)  (N8, the recall contract)
+                              library(causal_core)          (the classify engine)
+                              library(lattice)              (the raw Lattice door)
+
+Reading the graph. The region imports the two strata below it (downward, for the
+encode pipeline and the cross-stratal grounding), the Lattice substrate (for the
+store and the reentrant loop), and the minting vocabulary. The two strata are pure
+and import only the minting vocabulary. Nothing imports upward. This is what the
+strict layer gate verifies.
+
+
+PART FOUR - THE SUBSTRATE AND THE LATTICE COORDINATION
+
+There is exactly one coordination nexus, opened by neural_lattice_open, addressed by
+a fixed locus URI. Coordination is by numbered PHASE CUES, never by one component
+naming another:
+
+• Phase 1 carries the settle cue: an estimate, the materialised stored patterns, a
+  pass counter, and a token. The completion tick awaits phase 1, does one settling
+  step, and either re-posts phase 1 (reentry) or posts phase 2.
+
+• Phase 2 carries the settled result: settled(Pattern) or no_recall. The driver's
+  run_completion awaits phase 2, bounded, and reads the result.
+
+The await is a genuine block on a private message queue, woken by the notification
+that every Lattice write performs. There is no busy wait. Because exactly one phase
+cue exists at any instant, the loop is deterministic and the glass-box narration
+reads as a clean sequence.
+
+The MEMORY STORE also lives on the Lattice: encoding deposits one stored fact per
+memory (stigmergy), and store_patterns reads them back. This is why recall must
+materialise the growing set into a list at the boundary - the architectural seam that
+the Ledger records as finding HIPPO-1.
+
+
+PART FIVE - THE INTERFACES BETWEEN PACKS
+
+• Encode pipeline (region to synaptic to macromolecular). region_stratum_encode_memory
+  calls synaptic_stratum_encode to write a labile trace, deposits it into the store,
+  then calls macromolecular_stratum_consolidate to raise it toward durable. These are
+  downward structural calls, permitted reuse, not runtime tick coupling.
+
+• Structure grounding (region to both strata). The region's cross-stratal
+  consolidation causal_relation_object names the macromolecular durable-trace
+  occurrent as its cause and the region recall occurrent as its effect; its cue-input
+  port names the synaptic potentiation occurrent. These are references to records the
+  lower packs mint, not runtime calls.
+
+• The completion loop (region to itself, through the Lattice). The tick reenters only
+  by re-posting a phase cue. There is no in-process recursion and no reference from
+  one stratum's tick to another's - the closure gate proves this non-vacuously.
+
+• The safety interface (region to PrologAI). Recall declares the membership contract;
+  PrologAI's N8 construct wraps recall and refuses any non-member at runtime.
+
+
+PART SIX - HOW PROLOGAI IS REUSED, READ-ONLY
+
+PrologAI is reused by checkout, never vendored or forked, and never edited. Every
+gate resolves PrologAI through the PROLOGAI_HOME environment variable, defaulting to
+a local checkout, and stops with a clear message if PrologAI - or specifically the
+membership contract construct - is not reachable. The region is pinned to PrologAI
+commit 2043a09, the Wave 5 membership contract tip.
+
+The PrologAI packs and harnesses reused, all read-only, are:
+
+• library(lattice) - the raw stigmergy plus await and notify door.
+• library(actors), providing cyclic_actor - the background thread the completion
+  tick runs on.
+• library(membership_contract) - the N8 construct recall declares (the safety core).
+• library(causal_core) - the Causalontology 2.0.0 engine: content-addressed
+  identity, kinds, semantic rules, and the cross-stratal classify and skip-gap
+  algorithms.
+• library(layer) - the L4 strict layer rule and the N6 layer-to-stratum binding,
+  run unmodified over this region's packs.
+• The conformance harness under tests/causalontology_conformance, providing the JSON
+  schema validator (schema_check) and the pure-Prolog Ed25519 signing layer.
+
+
+PART SEVEN - THE STRUCTURE RECORDS (the grounded skeleton)
+
+The region mints twenty-two Causalontology 2.0.0 records, distributed by stratum:
+
+• macromolecular_stratum (six): the stratum, the calcium/calmodulin-kinase cascade
+  bearer, the labile- and durable-trace occurrents, the consolidation disposition,
+  and the consolidation cascade causal_relation_object (labile to durable, within the
+  stratum).
+
+• synaptic_stratum (four): the stratum, the mossy-fiber synapse bearer, the long-term
+  potentiation occurrent, and the plasticity disposition.
+
+• region_stratum (twelve): the stratum, the hippocampus bearer, the separation,
+  completion, and recall occurrents, the storage disposition, the cue-input and
+  recall-output ports, the region-internal recall causal_relation_object, the recall
+  conduit, the cross-stratal consolidation causal_relation_object (skips-true), and
+  the Ed25519-signed provenance assertion over it.
+
+Each record is written to structure/<name>.json. Every record identity is a hash of
+its canonical content, so the artifacts are reproducible: minting the same content
+twice yields the same identity.
+
+
+PART EIGHT - THE TECHNOLOGY STACK IN ONE VIEW
+
+• Language and runtime: SWI-Prolog, with packs on the library path.
+• Coordination: the PrologAI Lattice (stigmergy plus await and notify) and a
+  cyclic_actor background thread.
+• Structure: Causalontology 2.0.0 records, validated by PrologAI's conformance engine
+  and JSON schema validator, signed with pure-Prolog Ed25519.
+• Safety: PrologAI's N8 membership contract, declared on recall.
+• Orchestration and gates: small bash scripts under bin, plus a Python closure check;
+  the mini regression runs through PrologAI's own harness.
+• Documentation: ERC comments on every line of Prolog, and this six-file SPARC set.
