@@ -1,0 +1,157 @@
+CONNECTOME-HIPPOCAMPUS COMPLETION  (v1)
+
+This is the fifth of six documents. The Completion phase of the Specification,
+Pseudocode, Architecture, Refinement, Completion (SPARC) methodology records the
+delivered status: what passed, the final gate results in honest form, the pinned
+dependency the repository was built against, and the repository's honest limits.
+
+Acronyms spelled out on first use in this file: the Abstraction and Reasoning Corpus
+for Artificial General Intelligence (ARC-AGI), JavaScript Object Notation (JSON), and
+English-Readable Code (ERC). Ed25519 and SWI-Prolog are proper names, verbatim.
+
+
+PART ONE - WHAT WAS DELIVERED
+
+connectome-hippocampus is delivered as Wave 6 of the Connectome program: the first
+region that stores and recalls. It is complete as a runnable, gated, honestly
+documented memory region.
+
+• Five packs: neural_lattice and causal_grounding (substrate, layer 0, reused
+  verbatim); macromolecular_stratum (layer 1, consolidate), synaptic_stratum (layer 2,
+  encode), and region_stratum (layer 3, separate, complete, recall).
+
+• Four operations: encode, pattern separation, pattern completion (a reentrant
+  settling loop coordinated through the Lattice), and recall (a membership-contracted
+  selection).
+
+• The safety property no confabulation, DECLARED through PrologAI's N8 membership
+  contract on the recall predicate, not hand-rolled.
+
+• Twenty-two newly-minted Causalontology 2.0.0 structure records, each written to
+  structure/<name>.json, each with a content-addressed identity, plus one Ed25519
+  signed provenance assertion.
+
+• A runner (bin/run_hippocampus.sh), six gates, and a Ledger (LEDGER.md) recording
+  what the build surfaced.
+
+
+PART TWO - THE FINAL GATE RESULTS, IN HONEST FORM
+
+• No confabulation (check_membership.sh): PASS. The adversarial battery inspected two
+  hundred fifty-five attempts, found zero escapes, and safely refused eighty-eight
+  phantoms. The runner's own independent re-check held on every recall, and the
+  adversarial phantom was refused by the contract.
+
+• In-pack tests (run_tests.sh): PASS. Every pack's PLUnit suite passes, including the
+  region's no-confabulation tests.
+
+• Structure validation (validate_structure.sh): PASS. All twenty-two records validate
+  against their schema and the semantic rules; the cross-stratal consolidation
+  relation classifies as a clean skip with no skip-gap; the signed provenance
+  assertion verifies under Ed25519.
+
+• Strict layer rule (check_layers.sh): PASS. Zero upward edges among the declared
+  packs.
+
+• Layer-to-stratum binding (check_layer_binding.sh): PASS. Every stratum pack's layer
+  is order-preserving with its stratum's ordinal (macromolecular 4, synaptic 7,
+  region 9; layers 1, 2, 3). The two substrate packs are unbound gaps, never
+  violations.
+
+• Closure (check_no_coupling.sh): PASS. Zero actor-to-actor references; the completion
+  tick reenters by re-posting a Lattice cue and never calls itself in-process; it
+  awaits on the Lattice with no busy wait.
+
+• Mini regression (through PrologAI's own harness): the honest ten-percent spot-check
+  form, ARC-AGI-1 at forty of forty and ARC-AGI-2 at twelve of twelve. This is a
+  ten-percent spot-check, not the full benchmark. The full regression stays deferred.
+  This is explicitly NOT a four-hundred-of-four-hundred claim, and it must never be
+  rounded up to one.
+
+
+PART THREE - THE PINNED DEPENDENCY
+
+The region was built against, and is pinned to, PrologAI commit 2043a09 - the Wave 5
+membership contract tip, the point at which the N8 membership contract entered
+PrologAI's main line. PrologAI is reused read-only, by checkout, resolved through the
+PROLOGAI_HOME environment variable (defaulting to a local checkout). It was not
+modified, vendored, or forked.
+
+The PrologAI pieces reused read-only are: library(lattice) for the coordination
+substrate, library(actors) for the cyclic_actor background thread, library(membership_
+contract) for the N8 safety contract, library(causal_core) for the Causalontology
+engine, library(layer) for the strict layer rule and the binding check, and the
+conformance harness under tests/causalontology_conformance for the JSON schema
+validator and the pure-Prolog Ed25519 signing layer. Every gate stops with a clear
+message if PrologAI, or specifically the membership contract construct, is not
+reachable.
+
+
+PART FOUR - THE HONEST LIMITS (THE OPEN LEDGER FINDINGS)
+
+The Connectome program's method is to build a region and let the build surface what
+PrologAI cannot yet express. The findings are the product, not defects to hide. All
+three are recorded OPEN and none blocks the build. The Ledger is deliberately thin,
+which is the honest outcome when the enforced invariants really did carry the region.
+
+• HIPPO-1 (severity medium, OPEN, a second sighting of gap N9). A growing memory store
+  is naturally a set of independent facts, but the membership contract requires a plain
+  list at call time. So recall must materialise the current stored set into a list at
+  the boundary, once per recall. That is O(store size) per recall and copies the whole
+  set each time - fine for a small demo, wrong for a large or streaming store. The
+  minimum remedy is an accessor form of the contract that can name a deterministic goal
+  which PRODUCES the offered set, so it need not already be a bare list. This is the
+  reason this particular region was chosen to build: it is exactly the case gap N9
+  anticipated, now seen in a real consumer.
+
+• HIPPO-2 (severity medium, OPEN, a new gap). Real systems consolidation is delayed - a
+  labile trace becomes durable over time, during sleep-time replay - but PrologAI has no
+  scheduled or timed construct. The Lattice is reactive (it wakes on writes) with no
+  timer or wall-clock wakeup, and there is no construct for "run this after a delay."
+  So the region consolidates synchronously, right after the synaptic write, and the
+  delay lives only as data in a temporal field, never enacted. The minimum remedy is a
+  scheduled or temporal affordance - a Lattice timer, or a small deferred-reactivation
+  construct. Until then, any time-based memory process (delayed consolidation, decay,
+  spaced repetition, replay) can be described as data but not run.
+
+• HIPPO-3 (severity low, OPEN, a recurrence of the slice's findings P1 and P2). The
+  cross-stratal consolidation relation jumps from the macromolecular stratum (ordinal 4)
+  to the region stratum (ordinal 9), skipping the cellular (6) and synaptic (7) strata
+  between them. This cut does not model the intervening pathway, so the relation carries
+  skips-true honestly and classifies as a clean skip with no gap. The absence of a
+  modelled intervening mechanism across strata is the same unmanaged cross-stratal seam
+  the slice recorded. The minimum remedy is either to model the intervening strata as a
+  chain of adjacent-stratum steps, or a first-class "managed seam" construct that
+  records an intentional cross-stratal jump as more than a boolean flag.
+
+
+PART FIVE - WHAT THIS REPOSITORY DELIBERATELY DOES NOT DO
+
+• It does not modify PrologAI, Mentova, the frozen prologai-loops spike,
+  connectome-proto-agi, the three frozen Wave 3 arms, or connectome-arbiter.
+
+• It does not scale to the full connectome or become a general memory framework. It is
+  one region, built stratum-primary.
+
+• It does not schedule delayed consolidation, decay, or replay (HIPPO-2), and it does
+  not model the intervening cellular and synaptic pathway of the cross-stratal
+  consolidation seam (HIPPO-3).
+
+• It does not claim a full benchmark score. The mini regression is a ten-percent
+  spot-check only.
+
+
+PART SIX - REFLECTION ON COMPLETION
+
+The region is complete in the sense that matters for this program: it runs, its
+defining safety property holds and is checked redundantly, every gate passes, its
+structure is grounded and validated, and its limits are recorded rather than papered
+over. The thin Ledger is a positive result - it means the two enforced invariants, the
+N6 binding and the N8 contract, carried the region with little strain, so the only
+substantive gaps left are genuinely about a growing, time-evolving memory store.
+
+The trade-off accepted at completion is scope for honesty. Rather than closing the open
+findings by adding scheduling or streaming machinery this region was never scoped to
+build, they are carried forward as the honest requirements ledger the next wave can act
+on. In a program whose deliverable is the finding, shipping the finding intact is the
+completion.

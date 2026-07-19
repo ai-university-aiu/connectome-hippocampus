@@ -1,0 +1,179 @@
+CONNECTOME-HIPPOCAMPUS DEMONSTRATION  (v1)
+
+This is the sixth and last document. It is the owner's addition to the five-phase
+Specification, Pseudocode, Architecture, Refinement, Completion (SPARC) set: a plan
+of intentions for demonstrating the repository. It is a plan of intent, not a
+finished demonstration. It describes what to run, in what order, what each step
+shows, and what a viewer should conclude.
+
+Acronyms spelled out on first use in this file: the Abstraction and Reasoning Corpus
+for Artificial General Intelligence (ARC-AGI), JavaScript Object Notation (JSON), and
+English-Readable Code (ERC). Ed25519 and SWI-Prolog are proper names, verbatim.
+
+
+PART ONE - THE ONE THING THE DEMONSTRATION SHOULD PROVE
+
+A viewer should leave convinced of a single headline claim: this memory region can
+recall what it stored, from full, partial, noisy, and ambiguous cues, and it is
+STRUCTURALLY INCAPABLE of returning a memory it never stored - and that incapacity is
+DECLARED through PrologAI's membership contract, not hand-written by the region. Every
+step below serves that claim.
+
+
+PART TWO - SETUP (WHAT A VIEWER NEEDS FIRST)
+
+• A checkout of PrologAI at or after commit 2043a09 (the Wave 5 membership contract
+  tip), and the PROLOGAI_HOME environment variable pointing at it. Set it once:
+  export PROLOGAI_HOME=/path/to/PrologAI
+
+• SWI-Prolog installed and on the path.
+
+• No other setup. The region imports PrologAI read-only; if PrologAI or the membership
+  contract construct is missing, every gate stops with a clear message rather than
+  proceeding silently.
+
+
+PART THREE - THE MAIN RUN (THE STORY IN ONE COMMAND)
+
+Run: bin/run_hippocampus.sh
+
+What it does, in order:
+
+• Encodes a fixed set of memories - a red small circle, a blue large square, a red
+  large triangle, and a green small circle - chosen so that several share single
+  features (red, large, small, circle) but differ in their conjunctions. For each, it
+  narrates the dentate separation into a sparse code, the synaptic write, and the
+  molecular consolidation toward durable.
+
+• Spawns the CA3 completion actor, which blocks on its own settle cue with no busy
+  wait.
+
+• Recalls from five cues and narrates each: a FULL cue (recalls the memory exactly); a
+  PARTIAL cue of two of three features (completion reconstructs the third); a
+  DISAMBIGUATING cue where two single features each match a different memory but their
+  conjunction picks one; a NOISY cue (a whole memory plus a junk feature, tolerated);
+  and an UNSTORED cue (features nobody stored), which yields an explicit no_recall.
+
+• Narrates each recurrent completion pass as "recruited a feature, re-entering via the
+  Lattice," so the reentrant loop is visible, not hidden in a stack.
+
+• Runs the adversarial episode: it forces a never-stored phantom past completion and
+  shows the membership contract REFUSING it.
+
+• Prints the verdict block and exits zero only if every recall was a member or an
+  explicit no_recall AND the phantom was refused.
+
+What it shows: the four operations working end to end, the reentrant loop settling
+through the Lattice, and the safety property holding on the unstored cue and the
+adversarial phantom.
+
+
+PART FOUR - THE SAFETY DEMONSTRATION (THE FLAGSHIP)
+
+Run: bin/check_membership.sh
+
+What it does: it runs the dedicated adversarial battery that tries, exhaustively over
+every non-empty subset of a small stored universe, to make the region recall a memory
+nobody stored - both by proposing settled phantoms directly and by driving real
+pattern completion from phantom cues and then recalling the result. Each attempt is
+classified member, no_recall, refused, or escaped.
+
+What it shows: across the attempts it inspects, there are zero escapes, and phantoms
+are safely refused by the contract. This is the flagship evidence for the headline
+claim, and it is the gate that a build may never skip.
+
+A viewer should conclude: the guarantee is not a lucky property of the demo inputs; it
+holds across a systematic adversarial sweep, and the refusal is the contract's.
+
+
+PART FIVE - THE REMAINING GATES (THE FULL BILL OF HEALTH)
+
+Run these in any order to show the region is not only safe but well-formed:
+
+• bin/run_tests.sh - every pack's in-pack PLUnit suite passes, including the region's
+  no-confabulation tests.
+
+• bin/validate_structure.sh - the twenty-two Causalontology 2.0.0 records validate
+  against schema and semantics; the cross-stratal consolidation relation classifies as
+  a clean skip; the Ed25519-signed provenance verifies. It also writes the JSON
+  artifacts under structure, which a viewer can open and read.
+
+• bin/check_layers.sh - zero upward edges among the packs (the strict layer rule).
+
+• bin/check_layer_binding.sh - every pack's layer is order-preserving with its
+  stratum's ordinal (the layer-to-stratum binding).
+
+• bin/check_no_coupling.sh - the reentrant loop reenters through the Lattice, with zero
+  actor-to-actor references, no in-process recursion, and no busy wait.
+
+• The mini regression through PrologAI's own harness - the honest ten-percent
+  spot-check, ARC-AGI-1 at forty of forty and ARC-AGI-2 at twelve of twelve. State it
+  as a spot-check; it is not the full benchmark and must not be presented as
+  four-hundred-of-four-hundred.
+
+What they show together: the region is grounded, correctly layered and bound, closed
+through the Lattice, and did not disturb the PrologAI it reused.
+
+
+PART SIX - A SUGGESTED VIEWING ORDER FOR A LIVE AUDIENCE
+
+1. Open README.md and read the four operations and the safety claim aloud.
+
+2. Run bin/run_hippocampus.sh and narrate the trace as it prints - point at the
+   reentrant passes and at the explicit no_recall on the unstored cue, then at the
+   phantom being refused.
+
+3. Run bin/check_membership.sh and show the zero-escape verdict - this is the moment
+   the headline claim is earned.
+
+4. Run the remaining gates quickly, as the bill of health.
+
+5. Open one structure JSON artifact and one Prolog source file to show the grounding
+   and the ERC comments (every line has a plain-English explanation).
+
+6. Open LEDGER.md and read the three open findings - close by explaining that in this
+   program the findings are the deliverable, and a thin Ledger means the enforced
+   invariants carried the region.
+
+
+PART SEVEN - WHAT CAPABILITIES THE DEMONSTRATION EXHIBITS
+
+• Content-addressable memory: recall of a whole pattern from a fragment, the CA3
+  auto-associative capability.
+
+• Decorrelation: pattern separation that keeps near-duplicate memories from colliding.
+
+• Provable termination and closure: a reentrant loop that settles or explicitly
+  declines, never hangs, and reenters only through the shared substrate.
+
+• Declared safety: a safety property obtained by naming a contract rather than by
+  writing and trusting a guard.
+
+• Glass-box operation: every step narrated, every structure record validated and
+  signed, every claim gated.
+
+• Honest engineering: a ten-percent spot-check reported as such, and open limits
+  recorded rather than hidden.
+
+
+PART EIGHT - WHAT A VIEWER SHOULD CONCLUDE
+
+That a small, honest episodic-memory region can be built on two enforced PrologAI
+invariants - the layer-to-stratum binding and the membership contract - such that its
+defining safety property, no confabulation, is a single declaration that provably
+holds; that the reentrant biology of pattern completion maps cleanly onto a
+Lattice-coordinated settling loop; and that the exercise's real yield is the recorded
+finding that a growing, time-evolving memory store is precisely where PrologAI's
+current constructs run out - a plain-list contract facing a growing set, and a store
+that has no way to schedule consolidation over time.
+
+
+PART NINE - REFLECTION ON THE DEMONSTRATION PLAN
+
+The plan leads with running code and ends with the Ledger on purpose. Leading with the
+run makes the safety claim concrete before it is explained, and ending with the Ledger
+frames the honest limits as the intended result rather than as an apology. The
+trade-off accepted is that the demonstration proves a narrow thing deeply - one region,
+one safety property, three findings - rather than a broad thing shallowly. For a
+program whose method is to build one region at a time and record what it forces
+PrologAI to lack, depth on the one claim is the right choice.

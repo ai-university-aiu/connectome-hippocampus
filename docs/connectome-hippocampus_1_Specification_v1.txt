@@ -1,0 +1,219 @@
+CONNECTOME-HIPPOCAMPUS SPECIFICATION  (v1)
+
+This is the first of six documents for the connectome-hippocampus repository. It
+follows the Specification, Pseudocode, Architecture, Refinement, Completion (SPARC)
+methodology, which asks a builder to define a system completely before any code is
+written. This file is the Specification phase: what the repository must do, the
+qualities it must have, and the tests it must pass.
+
+A note on names used throughout. English-Readable Code (ERC) is the plain-English
+notation used in the Pseudocode file. JavaScript Object Notation (JSON) is a text
+format for structured data. Long-term potentiation (LTP) is the biological name for
+the lasting strengthening of a synapse that follows use, and it is the metaphor for
+"writing" a memory here. The Abstraction and Reasoning Corpus for Artificial General
+Intelligence (ARC-AGI) is a public benchmark of visual reasoning puzzles used by
+PrologAI to guard against regressions. Ed25519 is a specific public-key signature
+scheme, named verbatim. SWI-Prolog is the Prolog system the code runs on.
+
+
+PART ONE - WHAT THIS REPOSITORY IS
+
+connectome-hippocampus is Wave 6 of the Connectome program. It is the first brain
+region in that program whose job is to STORE and RECALL, rather than to relay a
+signal or to select among options. It models, in a deliberately small and honest
+way, the memory function of the hippocampus: the part of the brain that lays down
+new episodic memories and later brings them back from a fragment.
+
+The region performs four operations.
+
+• Encode. Write an input pattern as a memory. In the biological metaphor, synaptic
+  long-term potentiation lays down a fresh, fragile ("labile") trace, and a slower
+  molecular cascade consolidates that trace toward a durable one.
+
+• Pattern separation. This is the role of the dentate gyrus, one part of the
+  hippocampal circuit. It expands a pattern into a sparse, conjunctive code so that
+  similar inputs receive well-separated codes and near-duplicate memories do not
+  collide with one another on the way in.
+
+• Pattern completion. This is the role of the CA3 subfield, the auto-associative
+  core of the circuit. Given a partial or noisy cue, it recovers the whole stored
+  pattern. It is built as a genuine reentrant settling loop: the cue is fed back
+  through recurrent connections, one recruited feature at a time, until it settles.
+
+• Recall. Return a stored memory, or return an explicit refusal called no_recall.
+  Recall is a constrained selection: its output must be a member of the set of
+  memories that were actually stored.
+
+The repository is built on top of PrologAI, reused read-only. It does not modify
+PrologAI. It rests on two invariants that PrologAI already enforces, delivered in
+earlier waves: the N6 layer-to-stratum binding, and the N8 membership contract.
+
+
+PART TWO - FUNCTIONAL REQUIREMENTS
+
+These are the behaviours the repository must deliver.
+
+• FR-1 Encode a memory. Given an input pattern (a set of features), the region must
+  separate it, write it as a labile trace at the synaptic stratum, deposit it into a
+  memory store, and consolidate it toward durable at the macromolecular stratum. The
+  pattern itself must be carried through unchanged: encoding must never invent or
+  alter which memory is stored, only how durable it is.
+
+• FR-2 Pattern-separate. Given a pattern, produce a separation code that is the
+  union of the pattern's single features and every pairwise conjunction of those
+  features, sorted and deduplicated so that overlap between two codes is a plain set
+  operation. Two patterns that share single features but differ in their conjunctions
+  must receive well-separated codes.
+
+• FR-3 Pattern-complete as a reentrant loop. Given a partial or noisy cue, drive an
+  auto-associative settling process that grows an estimate toward the best-matching
+  stored pattern, one feature per pass. The loop must reenter through the shared
+  coordination substrate (the Lattice), not through in-process recursion or a busy
+  wait. It must provably terminate: it converges on a stored pattern, or it reaches
+  a bounded no_recall, and it must never hang.
+
+• FR-4 Recall under a membership constraint. Return the pattern the completion loop
+  settled on, or no_recall. The returned memory must be a member of the stored set,
+  or the explicit no_recall. A memory that was never stored (a phantom) must be
+  refused, even if the completion step were somehow to produce one.
+
+• FR-5 Maintain a memory store. Deposit one stored fact per encoded memory on the
+  Lattice (a form of stigmergy, in which agents coordinate by leaving marks in a
+  shared medium). Provide a way to read back the current stored set.
+
+• FR-6 Mint and validate structure. Produce the region's Causalontology 2.0.0
+  structure records (its strata, bearers, occurrents, dispositions, ports, conduits,
+  causal_relation_objects, and a signed provenance assertion) and validate every one
+  against PrologAI's unmodified conformance engine, writing each to a JSON artifact.
+
+• FR-7 Narrate glass-box. Every encode and every recall must print a human-readable
+  trace: the separation, the write and consolidation, each recurrent completion pass,
+  the settled memory or the explicit no_recall, and the refusal of the adversarial
+  phantom.
+
+• FR-8 Run and self-check. A single runner must encode a fixed set of memories,
+  recall from full, partial, disambiguating, noisy, and deliberately unstored cues,
+  and exit with success only if every recall was a member or an explicit no_recall
+  and the adversarial phantom was refused.
+
+
+PART THREE - NON-FUNCTIONAL REQUIREMENTS
+
+These are qualities the repository must have, over and above what it does.
+
+• NFR-1 Grounding in Causalontology 2.0.0. Every structural claim the region makes
+  is a content-addressed record whose identity is a hash of its canonical content,
+  validated against the shared schema and semantic rules. The region mints twenty-two
+  newly-minted records of its own; it does not copy another wave's records.
+
+• NFR-2 The strict layer rule (L4). The packs form four layers (0 through 3). A pack
+  may depend only downward or sideways, never upward. There must be zero upward edges
+  among the declared packs.
+
+• NFR-3 The layer-to-stratum binding (N6). Each stratum pack declares both a numeric
+  layer and a named biological stratum. The layer order must be order-preserving with
+  the stratum ordinals read from the structure records (macromolecular ordinal 4,
+  synaptic ordinal 7, region ordinal 9; layers 1, 2, 3). The two substrate packs
+  declare no stratum and are honestly "unbound" - a gap, never a violation.
+
+• NFR-4 Closure discipline. The one reentrant runtime loop coordinates only through
+  the Lattice. There must be zero actor-to-actor references at runtime, no in-process
+  recursion of the completion tick, and no busy wait - the loop blocks on a queue and
+  is woken by a notification.
+
+• NFR-5 The safety invariant: no confabulation. Recall must be structurally incapable
+  of returning a memory that was never stored. This is the region's defining safety
+  property. It must be DECLARED through PrologAI's N8 membership contract on the
+  recall predicate, not hand-rolled as a bespoke guard.
+
+• NFR-6 Read-only cross-repository reuse. PrologAI is reused by checkout, pinned to a
+  specific commit, resolved through an environment variable. The build must stop with
+  a clear message if PrologAI, or specifically the membership contract construct, is
+  not reachable. Nothing in PrologAI is edited, vendored, or forked.
+
+• NFR-7 English-Readable Code. Every line of Prolog carries one plain-English comment
+  immediately above it, so a newcomer can read the intent of each line.
+
+
+PART FOUR - OBJECTIVES, CONSTRAINTS, AND ACCEPTANCE CRITERIA
+
+Primary objective. Build a small, honest episodic-memory region that runs, whose
+no-confabulation guarantee holds, and whose construction surfaces what a growing,
+recalling memory store forces PrologAI to lack. In the Connectome program, the
+deliverable is the finding: the point of building the region is the Ledger it
+produces (the HIPPO series), as much as the running region itself.
+
+Constraints.
+
+• The region is built stratum-primary: one pack per stratum on the outside, with the
+  construct sub-modules living inside a pack, exactly as the Wave 4 arbiter was built.
+
+• The cellular stratum (ordinal 6) is deliberately not occupied, because no construct
+  in this cut of the model lives there.
+
+• Consolidation is performed synchronously, immediately after the synaptic write,
+  because PrologAI has no scheduled or timed construct with which to defer it. The
+  delay is represented as data, in a temporal field, but is not enacted.
+
+• The repository must not modify PrologAI, Mentova, the frozen prologai-loops spike,
+  connectome-proto-agi, the three frozen Wave 3 arms, or connectome-arbiter. It must
+  not try to scale to a full connectome or become a general memory framework.
+
+Acceptance criteria - the gates that must all pass.
+
+• The no-confabulation gate. The adversarial membership battery finds zero escapes
+  across every attempt it inspects.
+
+• Every pack's in-pack test suite passes.
+
+• Structure validation. All twenty-two records validate against the schema and the
+  semantic rules; the cross-stratal consolidation relation classifies as a clean skip
+  with no skip-gap; the signed provenance assertion verifies.
+
+• The strict layer gate (L4) finds zero upward edges.
+
+• The binding gate (N6) confirms every pack's layer is order-preserving with its
+  stratum's ordinal.
+
+• The closure gate finds zero actor-to-actor references, no in-process recursion of
+  the completion tick, and no busy wait.
+
+• The mini regression, run through PrologAI's own harness, holds in its honest
+  ten-percent spot-check form: ARC-AGI-1 at forty of forty and ARC-AGI-2 at twelve
+  of twelve. This is a spot-check; the full regression stays deferred, and this is
+  explicitly not a four-hundred-of-four-hundred claim.
+
+
+PART FIVE - REFLECTION ON THE MAIN DESIGN CHOICES
+
+The habit that runs through SPARC is Reflection: pausing to justify a decision, to
+name the alternative that was rejected, and to record the trade-off accepted.
+
+Why declare the membership contract instead of hand-rolling a guard. The Wave 4
+arbiter proved its membership invariant by hand: a guard predicate, a throwing
+emit, and a large bespoke battery. That worked, but it left the safety property in
+code the region author had to write and get right. Here, recall instead names one
+directive, membership_contract_enforce(region_stratum_recall/3, 3, 1, no_recall),
+and PrologAI's N8 construct refuses any non-member at runtime. The trade-off is a
+dependency on PrologAI at a pinned commit in exchange for a safety guarantee that no
+longer depends on the region's own code being correct. This is exactly the remedy
+the arbiter's own Ledger (finding ARBITER-1) had asked for, now used in earnest.
+
+Why make pattern completion a reentrant Lattice loop rather than a simple recursion.
+Pattern completion in CA3 is biologically a recurrent process, and the Connectome
+program's closure rule wants reentry to travel through the shared substrate, not the
+call stack. So the completion tick awaits a numbered cue, does one settling step,
+and re-posts its own cue - the recurrent connection is a write to the Lattice. The
+trade-off is more moving parts (an actor, a phase cue, a bounded await) in exchange
+for a loop that is provably non-recursive, provably terminating, and glass-box
+observable. Termination is guaranteed because the estimate only grows (it is
+monotone), so it must reach a stored pattern or hit its settling bound.
+
+Why materialise the store into a list at the recall boundary. A memory store is
+naturally a growing set of independent facts, but the membership contract requires a
+plain list at call time. Rather than change PrologAI, the region flattens the current
+stored set into a list once per recall, at the boundary, and records the cost as an
+honest workaround in the Ledger (finding HIPPO-1, a second sighting of gap N9). The
+trade-off accepted is a per-recall copy of the whole store - fine for a small demo,
+wrong for a large or streaming store - in exchange for leaving PrologAI untouched and
+letting the build surface the gap cleanly. That surfacing is the intended result.

@@ -1,0 +1,173 @@
+CONNECTOME-HIPPOCAMPUS REFINEMENT  (v1)
+
+This is the fourth of six documents. The Refinement phase of the Specification,
+Pseudocode, Architecture, Refinement, Completion (SPARC) methodology is the testing
+story: how the design was verified and improved, what checkers and batteries guard
+it, and which bug was found and fixed during the build. Refinement is where a claim
+becomes a checked claim.
+
+Acronyms spelled out on first use in this file: JavaScript Object Notation (JSON),
+English-Readable Code (ERC), and the Abstraction and Reasoning Corpus for Artificial
+General Intelligence (ARC-AGI). Ed25519 and SWI-Prolog are proper names, verbatim.
+
+
+PART ONE - THE VERIFICATION STRATEGY IN ONE SENTENCE
+
+The region makes one central safety claim - it cannot confabulate a memory it never
+stored - and that claim is checked three independent ways (a dedicated adversarial
+battery, the in-pack test suites, and a second independent check inside the runner),
+while five further gates verify grounding, layering, binding, and closure, and a
+sixth spot-checks that PrologAI itself did not regress.
+
+
+PART TWO - THE SIX GATES
+
+Each gate is a script under bin that exits zero on success. A skipped safety gate is
+treated as a failed build.
+
+Gate 1 - check_membership.sh: the flagship no-confabulation battery. This is the
+non-negotiable gate. It runs bin/check_membership.pl, a dedicated adversarial battery
+that TRIES to make the region recall a memory nobody stored. It works over a small
+universe of four patterns that will be stored (in every non-empty subset) and four
+phantom patterns that never are. For every subset it proposes each of: a settled
+stored pattern, a settled phantom, and the explicit no_recall (the DIRECT battery);
+and it also drives full pattern completion from partial and phantom cues to a
+fixpoint and then recalls the outcome (the PIPELINE battery). Each recall is
+classified as member (safe), no_recall (safe), refused (safe - the membership
+contract threw), or escaped (the one dangerous outcome: a non-member returned without
+a throw). The gate passes only if there are zero escapes. Reported result: across two
+hundred fifty-five inspected attempts there were zero escapes and eighty-eight
+phantoms safely refused.
+
+Gate 2 - run_tests.sh: every pack's in-pack PLUnit suite. Each of the five packs
+ships packs/<name>/test/test_<name>.pl, run in its own SWI-Prolog process. The
+region's suite specifically tries to make the region confabulate and confirms it
+cannot. The gate passes only if all suites pass.
+
+Gate 3 - validate_structure.sh: the Causalontology 2.0.0 structure validation. It
+assembles all twenty-two records from the three stratum packs and, for each, runs the
+schema check and the semantic-rule check from PrologAI's unmodified engine; it
+confirms the cross-stratal consolidation relation classifies as SKIPPING with no
+skip-gap; and it confirms the signed provenance assertion verifies under Ed25519. It
+also writes each record to structure/<name>.json. The gate passes only if every
+record validates and both the skip and signature checks pass.
+
+Gate 4 - check_layers.sh: the strict layer rule (L4). It loads PrologAI's unmodified
+layer construct and runs the directory-scoped report and check over the region's
+packs. The gate passes only if there is zero upward edge among the declared packs.
+
+Gate 5 - check_layer_binding.sh: the layer-to-stratum binding (N6). It loads
+PrologAI's unmodified binding check and runs it over the region's packs against the
+region's own structure records, which are the authoritative source of each stratum's
+ordinal. The gate passes only if every stratum pack's declared layer is
+order-preserving with its stratum's ordinal (macromolecular 4, synaptic 7, region 9;
+layers 1, 2, 3). The two substrate packs declare no stratum and are unbound gaps,
+never violations.
+
+Gate 6 - check_no_coupling.sh: the closure gate. A Python check strips comments from
+the stratum packs and confirms three things non-vacuously: no stratum pack names
+another stratum's runtime tick (zero actor-to-actor references); the completion tick
+reenters by re-posting a Lattice cue and never calls itself in-process (the CA3
+recurrence is stigmergic, not a stack recursion); and the completion tick awaits on
+the Lattice, so it blocks rather than busy-polls. The gate passes only if all three
+hold.
+
+Plus the mini regression. Through PrologAI's own harness
+($PROLOGAI_HOME/bin/run_mini_regression.sh), the build spot-checks that reusing
+PrologAI read-only did not disturb it. The honest ten-percent form is ARC-AGI-1 at
+forty of forty and ARC-AGI-2 at twelve of twelve. This is a spot-check, not the full
+benchmark; the full regression stays deferred, and it is explicitly not a
+four-hundred-of-four-hundred result.
+
+
+PART THREE - THE ADVERSARIAL BATTERIES IN DETAIL
+
+The membership battery (bin/check_membership.pl). Its power is in enumerating every
+non-empty subset of the stored universe and every proposal against it, so it does not
+merely test the happy path. The DIRECT arm proves the guard on the recall predicate
+itself; the PIPELINE arm proves that even a real completion run - including from a
+phantom cue - cannot smuggle a non-member through recall. The classification is
+deliberately strict: only member, no_recall, and refused are safe, and a single
+escaped result fails the whole gate.
+
+The runner's independent re-check (bin/run_hippocampus.pl). The runner does not trust
+the contract alone. On every recall it independently re-checks that the recalled value
+is a member of the materialised stored set or the explicit no_recall
+(run_hippocampus_member_ok), and it runs a dedicated adversarial episode that forces a
+never-stored phantom past completion and confirms the contract throws
+(run_hippocampus_adversarial). The final verdict holds only if every recall held AND
+the phantom was refused. A hang - a completion that does not settle within the bounded
+await - is reported as a distinct FAIL, not silently treated as no_recall.
+
+Termination as a verified property, not a hope. The completion step only ever grows
+the estimate (it is monotone), and the tick carries a settling bound of sixteen
+recurrent passes; the battery's fixpoint driver carries its own bound of thirty-two;
+and run_completion's await is bounded at thirty seconds. Together these make "settles
+or explicitly no-recalls, never hangs" a checked property rather than an assumption.
+
+
+PART FOUR - THE BUG THAT WAS FOUND AND FIXED
+
+An artifact filename collision was caught and fixed during the build.
+
+The symptom. The validator writes each structure record to structure/<name>.json,
+where <name> is the record's label. Two different causal_relation_objects both
+described consolidation: the macromolecular stratum's within-stratum consolidation
+relation (labile trace to durable trace), and the region's cross-stratal consolidation
+relation (macromolecular durable trace to region recall, flagged skips-true). Both had
+been labelled with the same stem, cro_consolidation. Because the label is the filename,
+both records tried to write to the same structure/cro_consolidation.json. The second
+write silently overwrote the first, so one genuine, distinct record was lost from the
+artifact set even though both were valid records in memory.
+
+Why it mattered. The two relations are genuinely different records with different
+content and therefore different content-addressed identities: one stays within the
+macromolecular stratum, the other spans two strata and carries the skips-true flag.
+Collapsing them onto one filename would have understated the record count and hidden
+the cross-stratal relation that finding HIPPO-3 is about.
+
+The fix. The two labels were made distinct: the macromolecular record is
+cro_consolidation_cascade and the region record is cro_cross_stratal_consolidation.
+The structure directory now holds both files, and the full count is a clean twenty-two
+records. The fix is a naming change only; it does not alter any record's content or
+identity, and it is exactly the kind of small, verifiable correction the Refinement
+phase exists to catch.
+
+
+PART FIVE - WHAT REFINEMENT CONFIRMED THE INVARIANTS CARRIED
+
+Two results are recorded not as fixes but as the program working as designed, because
+naming what did NOT need inventing keeps the account honest.
+
+• No-confabulation was a single declaration. The Wave 4 arbiter had to hand-roll its
+  membership invariant with a guard, a throwing emit, and a five-hundred-plus-attempt
+  battery. This region obtains the same guarantee for recall by DECLARING one line -
+  the membership contract - and the refusal is the contract's, not the region author's
+  code. The battery here confirms it holds across every attempt.
+
+• The reentrant loop needed nothing new. Pattern completion is a genuine reentrant
+  loop, and it rode the existing closure hybrid cleanly: await a numbered cue, do one
+  settling step, re-post the cue. The closure gate proves the reentry is through the
+  Lattice, non-vacuously.
+
+• A latent gap did not bite. PrologAI's contract enforces membership per solution
+  (its own gap N10). Recall is deterministic - it produces one answer - so per-solution
+  enforcement is exactly right here, and N10 is confirmed scoped to nondeterministic
+  producers, not to a selector like recall. No finding.
+
+
+PART SIX - REFLECTION ON THE TESTING APPROACH
+
+The trade-off taken in verification was to spend most of the effort on ONE property -
+no confabulation - checked redundantly, rather than to spread thin coverage across
+many properties. That is justified because no confabulation is the safety property the
+region exists to contribute; a false memory returned as true is the failure that
+matters. The redundancy (a dedicated battery, the in-pack suites, and an independent
+runner re-check) means the guarantee does not rest on any single piece of code being
+correct, including the region's own.
+
+The second reflection is about honesty as a test result. A thin Ledger and a
+ten-percent mini regression are reported as exactly what they are. The mini regression
+is never rounded up to the full benchmark, and the open Ledger findings are carried
+into the Completion file rather than closed prematurely. In this program, an accurate
+account of the limits is part of passing.

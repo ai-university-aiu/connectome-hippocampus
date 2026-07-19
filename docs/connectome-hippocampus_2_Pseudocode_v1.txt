@@ -1,0 +1,288 @@
+CONNECTOME-HIPPOCAMPUS PSEUDOCODE  (v1)
+
+This is the second of six documents. It is written in English-Readable Code (ERC),
+the notation defined by the ERC specification. ERC rests on a three-tier taxonomy:
+
+• PRIMITIVE operations translate one-to-one to code statements (assignment,
+  arithmetic, comparison, list operations, and the control-flow words IF, THEN,
+  ELSE, WHILE, FOR EACH, TRY, CATCH, RETURN).
+
+• COMPOSITE operations are higher-level steps that expand into primitives. Where a
+  full expansion aids the reader it is given inline; otherwise the composite is named
+  and its expansion is described in one line.
+
+• LIBRARY operations map to a documented external interface and are REFERENCED by
+  name, never expanded. In this file the library operations are PrologAI's own
+  constructs and the shared minting vocabulary. They are listed in Part One.
+
+The procedures below map mechanically to the actual Prolog in packs/*/prolog/*.pl.
+JavaScript Object Notation (JSON) and long-term potentiation (LTP) keep the meanings
+given in the Specification file.
+
+
+PART ONE - THE LIBRARY OPERATIONS THIS FILE REFERENCES (NOT EXPANDED)
+
+• lattice_put(Nexus, Kind, Fields, Options) - deposit one fact on the Lattice.
+• lattice_get(Nexus, Kind, Fields, Meta) - read facts back (backtracks over matches).
+• lattice_take(Nexus, Kind, Fields, Meta) - consume exactly one fact.
+• lattice_await(Nexus, Slot, Timeout, _, _) - block on a queue until a write wakes it.
+• lattice_notify - the wake a Lattice write performs (implicit inside a put).
+• cyclic_actor(Name, Goal, Seed) - run Goal repeatedly on a background thread.
+• membership_contract_enforce(Pred/Arity, OutArg, SetArg, Exempt) - declare that the
+  output argument must be a member of the set argument, or the exempt value.
+• causal_core_classify / causal_core_skip_gaps - classify a cross-stratal relation.
+• co_validate_schema / causal_core_validate_semantics - validate a structure record.
+• cm_stratum, cm_cnt, cm_occ, cm_rlz, cm_port, cm_conduit, cm_cro,
+  cm_map_of, cm_signed_assertion_over - the shared Causalontology minting vocabulary.
+
+
+PART TWO - SEPARATE (the dentate-gyrus sparse conjunctive code)
+
+PROCEDURE region_stratum_separate(Pattern, SepCode):
+    STEP sort and deduplicate Pattern into a list called Feats.
+    CREATE a list Unary as one cell u(F) FOR EACH feature F in Feats.
+    CREATE a list Pairs as one cell p(X, Y) FOR EACH ordered pair X, Y in Feats
+        where X is strictly before Y in standard order.
+    STEP append Unary and Pairs into a list Code0.
+    STEP sort and deduplicate Code0 into SepCode.
+    RETURN SepCode.
+
+PROCEDURE region_stratum_overlap(CodeA, CodeB, Count):
+    STEP intersect the two sorted codes into a list Shared.
+    SET Count to the number of items in Shared.
+    RETURN Count.
+
+PROCEDURE region_stratum_best_match(CueCode, StoredPatterns, Best, Overlap):
+    GUARD StoredPatterns is not empty; call its first pattern P0 and rest Ps.
+    STEP separate P0 into C0 and compute the overlap O0 of CueCode and C0.
+    SET the running best to the pair P0 with score O0.
+    FOR EACH pattern P in Ps:
+        STEP separate P into C and compute the overlap O1 of CueCode and C.
+        IF O1 is greater than the running best score THEN
+            SET the running best to the pair P with score O1.
+        ELSE
+            keep the running best unchanged (a tie keeps the earlier pattern).
+        END the conditional block.
+    END the loop.
+    RETURN the running best pattern as Best and its score as Overlap.
+
+
+PART THREE - COMPLETE, one settling step (pure, classified)
+
+PROCEDURE region_stratum_complete_step(Estimate, StoredPatterns, Outcome):
+    STEP separate Estimate into its code ECode.
+    STEP find the best-matching stored pattern Best and its Overlap
+        by region_stratum_best_match(ECode, StoredPatterns, Best, Overlap).
+    STEP sort Estimate into a set ESet and Best into a set BestSet.
+    IF Overlap is equal to zero THEN
+        SET Outcome to dead (the cue shares no cell with any stored memory).
+    ELSE IF BestSet minus ESet is the empty list THEN
+        SET Outcome to converged(Best) (the estimate already contains all of Best).
+    ELSE
+        STEP take the first feature Missing in BestSet minus ESet.
+        STEP form Estimate1 as the union of ESet and the single feature Missing.
+        SET Outcome to continue(Estimate1) (the estimate grows by one feature).
+    END the conditional block.
+    RETURN Outcome.
+
+Note on termination: continue only ever ADDS a feature, so the estimate is monotone
+non-decreasing and bounded by the largest stored pattern; the loop therefore reaches
+converged or dead, or hits the settling bound below, and cannot run forever.
+
+
+PART FOUR - COMPLETE, the reentrant runtime tick (closed through the Lattice)
+
+The settling bound is sixteen recurrent passes before an explicit no_recall.
+
+PROCEDURE region_stratum_complete_tick(Nexus):
+    GUARD block with no busy-poll until the settle cue on phase 1 exists, then take
+        it; this is the LIBRARY await neural_lattice_await_cue over lattice_await.
+    STEP read from the cue State0 the estimate, the stored patterns, the pass
+        counter Iter0, and the token Token0.
+    STEP do one settling step by region_stratum_complete_step(estimate, stored, Step).
+    SET Token to Token0 plus one.
+    STEP record and print one completion hop with the new Token (the beat arrived
+        via the Lattice), by the LIBRARY call neural_lattice_hop.
+    READ the settling bound into Bound.
+    IF Step is converged(S) THEN
+        STEP narrate that CA3 settled after Iter0 recurrent passes.
+        STEP put result settled(S) and the new Token into the state.
+        STEP post the state on phase 2 (the settled result).
+    ELSE IF Step is dead THEN
+        STEP narrate the explicit no-recall (the cue matched no stored memory).
+        STEP put result no_recall into the state and post it on phase 2.
+    ELSE IF Step is continue(_) AND Iter0 is greater than or equal to Bound THEN
+        STEP narrate that the settling bound was reached without converging.
+        STEP put result no_recall into the state and post it on phase 2.
+    ELSE (Step is continue(Estimate1)):
+        SET Iter1 to Iter0 plus one.
+        STEP narrate recurrent pass Iter1 - recruited a feature, re-entering.
+        STEP put the grown estimate, Iter1, and the new Token into the state.
+        STEP post the state on phase 1 (REENTRY - re-post the settle cue; the
+            recurrent collateral is a Lattice write, not an in-process call).
+    END the conditional block.
+
+PROCEDURE region_stratum_run_completion(Nexus, CompletionSeed, Result):
+    STEP post the initial settle cue on phase 1 (the cue enters the recurrent loop).
+    GUARD block BOUNDED (thirty seconds) for a phase-2 result by the LIBRARY call
+        lattice_await; on timeout FAIL (a hang the runner reports, distinct from
+        no_recall) rather than blocking forever.
+    STEP consume exactly one phase-2 result cue Done by lattice_take.
+    STEP read the result field of Done into Result (settled(Pattern) or no_recall).
+    RETURN Result.
+
+
+PART FIVE - THE MEMORY STORE and the N9 boundary
+
+PROCEDURE region_stratum_store_encode(Nexus, Pattern, Strength):
+    STEP deposit one stored fact carrying Pattern and Strength by the LIBRARY call
+        lattice_put(Nexus, stored, [Pattern, Strength], []).
+
+PROCEDURE region_stratum_store_patterns(Nexus, Patterns):
+    STEP collect every stored Pattern currently on the Lattice into a list Raw by
+        the LIBRARY call lattice_get over the stored facts (it backtracks).
+    STEP sort and deduplicate Raw into Patterns (the plain list the contract needs).
+    RETURN Patterns.
+    // THIS IS THE N9 MATERIALISATION BOUNDARY: the store is a growing SET of facts,
+    // but the membership contract requires a plain LIST, so the set is flattened
+    // here, once per recall. Recorded as an honest workaround in the Ledger.
+
+
+PART SIX - RECALL and its DECLARED membership contract
+
+PROCEDURE region_stratum_recall(StoredPatterns, CompletionResult, Recalled):
+    IF CompletionResult is exactly no_recall THEN
+        SET Recalled to no_recall (the declared abstention).
+    ELSE
+        STEP unify CompletionResult with settled(Recalled) (return the settled memory).
+    END the conditional block.
+    RETURN Recalled.
+    // The clause is deliberately thin: the SAFETY is not here, it is the directive.
+
+DECLARE membership_contract_enforce(region_stratum_recall/3, 3, 1, no_recall).
+    // LIBRARY declaration (PrologAI N8): argument 3 (the output Recalled) MUST be a
+    // member of argument 1 (StoredPatterns), or the exempt value no_recall. At
+    // runtime the contract REFUSES any non-member by throwing, so even a
+    // settled(Phantom) whose Phantom is not stored can never be returned.
+
+
+PART SEVEN - ENCODE (the downward pipeline) and the native rate laws
+
+PROCEDURE synaptic_stratum_encode(Pattern, Trace):
+    READ the initial labile strength (a constant) into Strength.
+    SET Trace to mem(Pattern, Strength) (the pattern is carried through UNCHANGED).
+    RETURN Trace.
+
+PROCEDURE macromolecular_stratum_consolidate(mem(Pattern, Strength0), mem(Pattern, Strength1)):
+    READ the consolidation increment (a constant) into Step.
+    STEP compute Strength0 plus Step, capped at one, into Strength1.
+    RETURN mem(Pattern, Strength1) (the Pattern is untouched; only durability rises).
+
+PROCEDURE region_stratum_encode_memory(Nexus, InputPattern):
+    STEP sort InputPattern into a set Pattern (the memory's identity).
+    STEP separate Pattern into SepCode; narrate its cell count (glass-box).
+    STEP call synaptic_stratum_encode(Pattern, mem(Pattern, Strength0)) (downward WRITE).
+    STEP call region_stratum_store_encode(Nexus, Pattern, Strength0) (STORE the trace).
+    STEP call macromolecular_stratum_consolidate(mem(Pattern, Strength0),
+        mem(Pattern, Strength1)) (downward CONSOLIDATE, synchronous - see HIPPO-2).
+    IF the consolidated trace is durable THEN narrate durable ELSE narrate labile.
+
+
+PART EIGHT - THE RUNNER (encode, recall, prove no confabulation)
+
+PROCEDURE run_hippocampus:
+    STEP open (or reuse) the coordination nexus and reset it for a clean run.
+    STEP print the run banner and the sacred guarantee.
+    READ the fixed list of Memories to encode.
+    FOR EACH memory M in Memories:
+        STEP call region_stratum_encode_memory(Nexus, M).
+    END the loop.
+    STEP spawn the completion actor by the LIBRARY call
+        cyclic_actor(ca3_completion, region_stratum:region_stratum_complete_tick(Nexus), 0).
+    READ the fixed list of recall Cues (full, partial, disambiguating, noisy, unstored).
+    STEP run every cue through the loop by run_hippocampus_loop, collecting results.
+    STEP run the adversarial phantom check into AdvOk.
+    STEP stop the completion actor.
+    IF run_hippocampus_verdict(Results, AdvOk) succeeds THEN halt with code 0
+    ELSE halt with code 1.
+
+PROCEDURE run_hippocampus_loop(Nexus, Cues, Results):
+    FOR EACH cue(Label, Cue, Expect) in Cues:
+        STEP narrate the recall episode.
+        STEP materialise the store by region_stratum_store_patterns(Nexus, Stored).
+        STEP build the completion seed with estimate Cue, stored Stored, iter 0, token 0.
+        TRY region_stratum_run_completion(Nexus, Seed, CompletionResult):
+            STEP recall by region_stratum_recall(Stored, CompletionResult, Recalled).
+            STEP independently re-check membership by run_hippocampus_member_ok.
+            STEP report the recall and the independent verdict.
+        CATCH the loop did not return within its bound:
+            SET Recalled to hung and the verdict to false (a HANG, reported as FAIL).
+        END the try block.
+    END the loop.
+
+PROCEDURE run_hippocampus_member_ok(Stored, Recalled, Ok):
+    IF Recalled is no_recall THEN SET Ok to true (declining to invent is safe).
+    ELSE IF Recalled is a member of Stored THEN SET Ok to true.
+    ELSE SET Ok to false (a memory nobody stored, or a hang, violates the guarantee).
+
+PROCEDURE run_hippocampus_adversarial(Ok):
+    STEP set Stored to a list that does NOT contain the phantom.
+    TRY region_stratum_recall(Stored, settled([never, stored, here]), Bad):
+        IF recall RETURNED the phantom without throwing THEN
+            SET Ok to false (the guarantee was broken - ESCAPED).
+    CATCH the membership_contract_violation error:
+        SET Ok to true (the contract REFUSED the never-stored phantom - correct).
+    END the try block.
+
+
+PART NINE - STRUCTURE MINTING (composite over library minting calls)
+
+PROCEDURE region_stratum_records(Records):
+    STEP mint the region stratum, the hippocampus bearer, and the three occurrents
+        (separation, completion, recall) by the LIBRARY calls cm_stratum, cm_cnt, cm_occ.
+    STEP mint the storage disposition, the cue-input and recall-output ports, the
+        region-internal recall causal_relation_object, and the recall conduit
+        by cm_rlz, cm_port, cm_cro, cm_conduit.
+    STEP mint the CROSS-STRATAL consolidation causal_relation_object flagged
+        skips-true (macromolecular durable, ordinal 4, to region recall, ordinal 9),
+        and the Ed25519-signed provenance assertion over it, by cm_cro and
+        cm_signed_assertion_over.
+    STEP assemble the twelve labelled records into Records.
+    RETURN Records.
+
+PROCEDURE region_stratum_skip_check(Class, Gaps):
+    STEP mint the consolidation causal_relation_object and its two endpoint occurrents.
+    STEP build the occurrent map and the stratum map by cm_map_of.
+    STEP classify the relation by the LIBRARY call causal_core_classify (expected:
+        skipping).
+    STEP read the skip-gaps by causal_core_skip_gaps (expected: none, because
+        skips-true makes the absent intervening mechanism a positive, honest finding).
+    RETURN Class and Gaps.
+
+
+PART TEN - TESTS (GIVEN / WHEN / THEN)
+
+TEST separation decorrelates near-duplicates:
+    GIVEN two patterns that share single features but differ in a conjunction.
+    WHEN each is separated into its code.
+    THEN the two codes differ in their p(X, Y) conjunctive cells.
+
+TEST completion reconstructs a partial cue:
+    GIVEN a stored memory and a partial cue holding two of its three features.
+    WHEN the reentrant loop settles the cue.
+    THEN the result is settled with the full stored memory.
+
+TEST an unstored cue yields an explicit refusal:
+    GIVEN a cue whose features match no stored memory.
+    WHEN the loop settles.
+    THEN the result is no_recall, and recall returns no_recall (never a phantom).
+
+TEST the contract refuses a phantom:
+    GIVEN a stored set that does not contain a phantom pattern.
+    WHEN recall is asked to return settled(phantom).
+    THEN the membership contract throws and the phantom is refused, not returned.
+
+TEST the loop terminates:
+    GIVEN any cue and any stored set.
+    WHEN the loop runs.
+    THEN it reaches converged or no_recall within the settling bound, never a hang.
