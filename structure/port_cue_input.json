@@ -1,0 +1,11 @@
+{
+  "accepts": [
+    "occurrent:b2d89362e0e35c6e1e0dedd7274cb3c829a5474fe25b7deafa5f8e0cc73c68d4",
+    "occurrent:17cf2ddfe6b4e8390ab6b43e1b806756e0439630f1e6e0290d35c0c4a2173991"
+  ],
+  "bearer":"continuant:d48a65f0aa456ac4b6bef6aef7e6cdd57b5eb8f510b17e60c469459e527277d3",
+  "direction":"in",
+  "id":"port:42a4966d293d7e2e4b8d10a0c7e155b833aafe8e6fdc4c79cab779814c18a9cc",
+  "label":"cue_input",
+  "type":"port"
+}

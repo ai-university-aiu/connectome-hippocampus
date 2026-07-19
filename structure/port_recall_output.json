@@ -1,0 +1,8 @@
+{
+  "accepts": ["occurrent:b50bffb8730dd8510feb5a2b006e0116b3f7aad387c69b927ef557c31b09a83b" ],
+  "bearer":"continuant:d48a65f0aa456ac4b6bef6aef7e6cdd57b5eb8f510b17e60c469459e527277d3",
+  "direction":"out",
+  "id":"port:20be32b26e5bf89be75853ed3f69ad33cc244a37cd905f8ef3311c7dfedb87d6",
+  "label":"recall_output",
+  "type":"port"
+}

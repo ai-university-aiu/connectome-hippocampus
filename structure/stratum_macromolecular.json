@@ -1,0 +1,9 @@
+{
+  "governs": ["molecular_neuroscience" ],
+  "id":"stratum:9bf35b5dd8021fef7aa9736706211aaff90069cc2edf039ee73f3c18b858a7f6",
+  "label":"macromolecular",
+  "ordinal":4,
+  "scheme":"neuroendocrine",
+  "type":"stratum",
+  "unit":"macromolecule"
+}

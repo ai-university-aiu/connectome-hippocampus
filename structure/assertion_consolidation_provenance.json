@@ -1,0 +1,10 @@
+{
+  "about":"causal_relation_object:7df70f3dbf39070402007d99203f75be61b01093b0453d2aa4e19b8e9cfd4073",
+  "confidence":0.9,
+  "evidence_type":"observation",
+  "id":"assertion:31b127a0f0b4f2ee2579011372fb3ca157e8c8166278c9247dd9fb757de80c91",
+  "signature":"16b1c0d3208e222b31debccf5a077ecb8509b7089c2337ca9df637bcd8e2b7235f840c52d0c2be4daa09b92d2d3c73bd4bbb61df8b30945cb9c50b20135bac00",
+  "source":"ed25519:48895ec81c687a6a9f0d755f3e172b1c8a22d777f88c2b8ce34afb077a0950f7",
+  "timestamp":"2026-07-17T01:00:00Z",
+  "type":"assertion"
+}
