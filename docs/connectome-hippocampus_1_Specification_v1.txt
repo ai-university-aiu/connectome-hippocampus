@@ -81,7 +81,7 @@ These are the behaviours the repository must deliver.
   Lattice (a form of stigmergy, in which agents coordinate by leaving marks in a
   shared medium). Provide a way to read back the current stored set.
 
-• FR-6 Mint and validate structure. Produce the region's Causalontology 2.0.0
+• FR-6 Mint and validate structure. Produce the region's Causalontology 3.0.0
   structure records (its strata, bearers, occurrents, dispositions, ports, conduits,
   causal_relation_objects, and a signed provenance assertion) and validate every one
   against PrologAI's unmodified conformance engine, writing each to a JSON artifact.
@@ -101,7 +101,7 @@ PART THREE - NON-FUNCTIONAL REQUIREMENTS
 
 These are qualities the repository must have, over and above what it does.
 
-• NFR-1 Grounding in Causalontology 2.0.0. Every structural claim the region makes
+• NFR-1 Grounding in Causalontology 3.0.0. Every structural claim the region makes
   is a content-addressed record whose identity is a hash of its canonical content,
   validated against the shared schema and semantic rules. The region mints twenty-two
   newly-minted records of its own; it does not copy another wave's records.

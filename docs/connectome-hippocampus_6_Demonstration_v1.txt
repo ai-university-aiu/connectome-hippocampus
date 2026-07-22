@@ -22,8 +22,7 @@ step below serves that claim.
 
 PART TWO - SETUP (WHAT A VIEWER NEEDS FIRST)
 
-• A checkout of PrologAI at or after commit 2043a09 (the Wave 5 membership contract
-  tip), and the PROLOGAI_HOME environment variable pointing at it. Set it once:
+• A checkout of PrologAI at or after commit a1b2343 (Wave 10 Stage 1, the Causalontology 3.0.0 adoption), and the PROLOGAI_HOME environment variable pointing at it. Set it once:
   export PROLOGAI_HOME=/path/to/PrologAI
 
 • SWI-Prolog installed and on the path.
@@ -93,7 +92,7 @@ Run these in any order to show the region is not only safe but well-formed:
 • bin/run_tests.sh - every pack's in-pack PLUnit suite passes, including the region's
   no-confabulation tests.
 
-• bin/validate_structure.sh - the twenty-two Causalontology 2.0.0 records validate
+• bin/validate_structure.sh - the twenty-two Causalontology 3.0.0 records validate
   against schema and semantics; the cross-stratal consolidation relation classifies as
   a clean skip; the Ed25519-signed provenance verifies. It also writes the JSON
   artifacts under structure, which a viewer can open and read.

@@ -36,7 +36,7 @@
     gap N9 (the contract wants a plain list, a growing store is not one) — see
     LEDGER.md HIPPO-1.
 
-    Its STRUCTURE is grounded in Causalontology 2.0.0: the region stratum, the
+    Its STRUCTURE is grounded in Causalontology 3.0.0: the region stratum, the
     hippocampus bearer, the separation/completion/recall occurrents, the storage
     disposition, the cue and recall ports, the region-internal recall CRO, the
     computational recall conduit, the CROSS-STRATAL consolidation CRO (macromolecular

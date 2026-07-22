@@ -12,8 +12,7 @@
 > PrologAI could not express, the evidence (file:line), and the minimum remedy.
 > Parents are cited for second sightings.
 >
-> The region was built at a PINNED PrologAI commit, **2043a09** (main, the Wave 5
-> membership contract / N8 tip), reused read-only through `PROLOGAI_HOME`; PrologAI
+> The region was built at a PINNED PrologAI commit, **a1b2343** (main, Wave 10 Stage 1, the Causalontology 3.0.0 adoption), reused read-only through `PROLOGAI_HOME`; PrologAI
 > was not modified. A gap is a Ledger entry, never a commit against PrologAI.
 
 Legend: **S** = severity for the Connectome plan (H/M/L).

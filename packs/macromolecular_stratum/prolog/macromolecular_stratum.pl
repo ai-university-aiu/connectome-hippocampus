@@ -9,7 +9,7 @@
     rate law, never a causal_relation_object, per the grounding rule) — a single
     sub-module, macromolecular_stratum_consolidate/2.
 
-    Its STRUCTURE is grounded in Causalontology 2.0.0: the macromolecular stratum
+    Its STRUCTURE is grounded in Causalontology 3.0.0: the macromolecular stratum
     record, the calcium/calmodulin-kinase cascade continuant that bears the
     consolidation, the labile- and durable-trace state-change occurrents, the
     consolidation disposition, and the consolidation causal_relation_object

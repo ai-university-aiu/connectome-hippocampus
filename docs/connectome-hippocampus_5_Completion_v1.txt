@@ -27,7 +27,7 @@ documented memory region.
 • The safety property no confabulation, DECLARED through PrologAI's N8 membership
   contract on the recall predicate, not hand-rolled.
 
-• Twenty-two newly-minted Causalontology 2.0.0 structure records, each written to
+• Twenty-two newly-minted Causalontology 3.0.0 structure records, each written to
   structure/<name>.json, each with a content-addressed identity, plus one Ed25519
   signed provenance assertion.
 
@@ -71,9 +71,7 @@ PART TWO - THE FINAL GATE RESULTS, IN HONEST FORM
 
 PART THREE - THE PINNED DEPENDENCY
 
-The region was built against, and is pinned to, PrologAI commit 2043a09 - the Wave 5
-membership contract tip, the point at which the N8 membership contract entered
-PrologAI's main line. PrologAI is reused read-only, by checkout, resolved through the
+The region was built against, and is pinned to, PrologAI commit a1b2343 - Wave 10 Stage 1, the Causalontology 3.0.0 adoption. PrologAI is reused read-only, by checkout, resolved through the
 PROLOGAI_HOME environment variable (defaulting to a local checkout). It was not
 modified, vendored, or forked.
 

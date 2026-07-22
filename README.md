@@ -55,7 +55,7 @@ arbiter's ARBITER-1 finding asked for, now used in anger.
 | pack | layer | stratum (ordinal) | role · sub-modules |
 |---|---|---|---|
 | `neural_lattice` | 0 | — (substrate, unbound) | stigmergy + await/notify closure substrate (reused verbatim) |
-| `causal_grounding` | 0 | — (substrate, unbound) | the shared Causalontology 2.0.0 minting vocabulary (reused verbatim) |
+| `causal_grounding` | 0 | — (substrate, unbound) | the shared Causalontology 3.0.0 minting vocabulary (reused verbatim) |
 | `macromolecular_stratum` | 1 | macromolecular (4) | **consolidate** — the calcium-driven cascade, labile → durable (native) |
 | `synaptic_stratum` | 2 | synaptic (7) | **encode** — the plasticity write that lays down a trace (native) |
 | `region_stratum` | 3 | region (9) | **separate**, **complete** (reentrant), **recall** (membership-contracted) |
@@ -81,15 +81,14 @@ a hang (a distinct failure the runner reports).
 ## Cross-repo provenance
 
 The region reuses PrologAI **read-only, by checkout** — no vendoring, no fork. It is
-pinned to PrologAI commit **`2043a09`** (main, the Wave 5 membership contract / N8
-tip). Every gate resolves PrologAI through the **`PROLOGAI_HOME`** environment
+pinned to PrologAI commit **`a1b2343`** (main, Wave 10 Stage 1, the Causalontology 3.0.0 adoption). Every gate resolves PrologAI through the **`PROLOGAI_HOME`** environment
 variable (default `/home/ccaitwo/PrologAI`) and stops with a clear message if
 PrologAI — or specifically the N8 `membership_contract` construct — is not reachable.
 
 ## Running it
 
 ```bash
-# Point at a PrologAI checkout at (or after) commit 2043a09.
+# Point at a PrologAI checkout at (or after) commit a1b2343.
 export PROLOGAI_HOME=/path/to/PrologAI
 
 # Encode a handful of memories, then recall from full, partial, noisy, and UNSTORED cues.
@@ -106,7 +105,7 @@ the adversarial phantom being **refused** by the contract.
 ```bash
 bin/check_membership.sh        # 1. NO CONFABULATION — the flagship, non-negotiable gate (the contract refuses every non-member)
 bin/run_tests.sh               # every pack's in-pack PLUnit suite, incl. the region's no-confabulation tests
-bin/validate_structure.sh      # 22 newly-minted Causalontology 2.0.0 records valid; the cross-stratal skip and the signature verify
+bin/validate_structure.sh      # 22 newly-minted Causalontology 3.0.0 records valid; the cross-stratal skip and the signature verify
 bin/check_layers.sh            # L4 — zero upward edges among the declared packs
 bin/check_layer_binding.sh     # N6 — every pack's layer is order-preserving with its stratum's ordinal
 bin/check_no_coupling.sh       # closure — the CA3 loop reenters through the Lattice; 0 actor-to-actor refs; no busy-poll
@@ -125,7 +124,7 @@ deferred — this is not 400/400).
   N8 membership contract.
 - **New**: the encode / separate / complete / recall / consolidate constructs; a
   Lattice-resident memory store; and the region's own **22** newly-minted
-  Causalontology 2.0.0 structure records (not a copy of the slice's twenty-eight).
+  Causalontology 3.0.0 structure records (not a copy of the slice's twenty-eight).
 
 ## What this repository does not do
 

@@ -16,7 +16,7 @@
     the memory's identity and is written UNCHANGED — encoding never invents a
     pattern, so the set of stored patterns is exactly the set of encoded inputs.
 
-    Its STRUCTURE is grounded in Causalontology 2.0.0: the synaptic stratum record,
+    Its STRUCTURE is grounded in Causalontology 3.0.0: the synaptic stratum record,
     the mossy-fiber synapse continuant that bears the plasticity, the long-term-
     potentiation state-change occurrent, and the plasticity disposition.
 
