@@ -1,8 +1,8 @@
-/*  connectome-hippocampus — the Causalontology 2.0.0 structure validator.
+/*  connectome-hippocampus — the Causalontology 3.0.0 structure validator.
 
     Assembles the region's newly-minted structure records from the three stratum
     packs (macromolecular, synaptic, region) and validates every one against
-    PrologAI's UNMODIFIED Causalontology 2.0.0 conformance engine:
+    PrologAI's UNMODIFIED Causalontology 3.0.0 conformance engine:
       - co_validate_schema/4  — the record satisfies its kind's JSON schema.
       - causal_core_validate_semantics/3 — the local semantic rules hold.
       - the cross-stratal consolidation CRO classifies as SKIPPING with NO
@@ -41,7 +41,7 @@ validate_structure_records(Records) :-
 % -- validate_structure_main/0: run every check, write artifacts, and halt with the verdict.
 validate_structure_main :-
     % Print the banner.
-    format("~n== connectome-hippocampus :: Causalontology 2.0.0 structure validation ==~n~n", []),
+    format("~n== connectome-hippocampus :: Causalontology 3.0.0 structure validation ==~n~n", []),
     % Assemble the full labelled record list from the three stratum packs.
     validate_structure_records(Records),
     % Schema- and semantics-validate every record, collecting failures.
@@ -58,7 +58,7 @@ validate_structure_main :-
     ( SchemaFails == [], SkipOk == ok, SignOk == ok
     % Everything passed: announce success and exit 0.
     ->  length(Records, N),
-        format("~nVALIDATION: PASS -- ~w records valid against Causalontology 2.0.0; skip finding and signature verified.~n~n", [N]),
+        format("~nVALIDATION: PASS -- ~w records valid against Causalontology 3.0.0; skip finding and signature verified.~n~n", [N]),
         halt(0)
     % Something failed: announce and exit 1.
     ;   format("~nVALIDATION: FAIL~n", []),

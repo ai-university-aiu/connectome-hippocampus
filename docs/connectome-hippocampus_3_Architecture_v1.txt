@@ -18,7 +18,7 @@ The region is decomposed one pack per biological stratum on the OUTSIDE, with th
 individual constructs living as independently testable sub-modules on the INSIDE.
 This is the Wave 3 verdict of the Connectome program, and it is the same shape the
 Wave 4 arbiter used. A "stratum" here is a level of biological organization named by
-Causalontology 2.0.0 and given a numeric ordinal; a lower ordinal is a finer level.
+Causalontology 3.0.0 and given a numeric ordinal; a lower ordinal is a finer level.
 
 Two supporting packs sit beneath the strata as substrate: a coordination Lattice and
 a shared minting vocabulary. They belong to no stratum and are reused verbatim from
@@ -43,7 +43,7 @@ Pack: neural_lattice
 
 Pack: causal_grounding
     Layer 0. No stratum (substrate, unbound).
-    Role: the shared Causalontology 2.0.0 minting vocabulary - fourteen helpers that
+    Role: the shared Causalontology 3.0.0 minting vocabulary - fourteen helpers that
     stamp a content-addressed identity, fold key-value fields, build id-keyed maps,
     derive a deterministic signing key, and sign an assertion. Reused verbatim so a
     record minted here has byte-identical content, and therefore a byte-identical
@@ -170,7 +170,7 @@ PrologAI is reused by checkout, never vendored or forked, and never edited. Ever
 gate resolves PrologAI through the PROLOGAI_HOME environment variable, defaulting to
 a local checkout, and stops with a clear message if PrologAI - or specifically the
 membership contract construct - is not reachable. The region is pinned to PrologAI
-commit 2043a09, the Wave 5 membership contract tip.
+commit a1b2343, Wave 10 Stage 1, the Causalontology 3.0.0 adoption.
 
 The PrologAI packs and harnesses reused, all read-only, are:
 
@@ -178,7 +178,7 @@ The PrologAI packs and harnesses reused, all read-only, are:
 • library(actors), providing cyclic_actor - the background thread the completion
   tick runs on.
 • library(membership_contract) - the N8 construct recall declares (the safety core).
-• library(causal_core) - the Causalontology 2.0.0 engine: content-addressed
+• library(causal_core) - the Causalontology 3.0.0 engine: content-addressed
   identity, kinds, semantic rules, and the cross-stratal classify and skip-gap
   algorithms.
 • library(layer) - the L4 strict layer rule and the N6 layer-to-stratum binding,
@@ -189,7 +189,7 @@ The PrologAI packs and harnesses reused, all read-only, are:
 
 PART SEVEN - THE STRUCTURE RECORDS (the grounded skeleton)
 
-The region mints twenty-two Causalontology 2.0.0 records, distributed by stratum:
+The region mints twenty-two Causalontology 3.0.0 records, distributed by stratum:
 
 • macromolecular_stratum (six): the stratum, the calcium/calmodulin-kinase cascade
   bearer, the labile- and durable-trace occurrents, the consolidation disposition,
@@ -215,7 +215,7 @@ PART EIGHT - THE TECHNOLOGY STACK IN ONE VIEW
 • Language and runtime: SWI-Prolog, with packs on the library path.
 • Coordination: the PrologAI Lattice (stigmergy plus await and notify) and a
   cyclic_actor background thread.
-• Structure: Causalontology 2.0.0 records, validated by PrologAI's conformance engine
+• Structure: Causalontology 3.0.0 records, validated by PrologAI's conformance engine
   and JSON schema validator, signed with pure-Prolog Ed25519.
 • Safety: PrologAI's N8 membership contract, declared on recall.
 • Orchestration and gates: small bash scripts under bin, plus a Python closure check;

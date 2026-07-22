@@ -44,7 +44,7 @@ ships packs/<name>/test/test_<name>.pl, run in its own SWI-Prolog process. The
 region's suite specifically tries to make the region confabulate and confirms it
 cannot. The gate passes only if all suites pass.
 
-Gate 3 - validate_structure.sh: the Causalontology 2.0.0 structure validation. It
+Gate 3 - validate_structure.sh: the Causalontology 3.0.0 structure validation. It
 assembles all twenty-two records from the three stratum packs and, for each, runs the
 schema check and the semantic-rule check from PrologAI's unmodified engine; it
 confirms the cross-stratal consolidation relation classifies as SKIPPING with no
